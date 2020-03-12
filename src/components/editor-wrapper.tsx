@@ -3,11 +3,15 @@ import {Editor, EditorState} from 'draft-js'
 
 const styles = require('./editor-wrapper.module.scss')
 
+export interface EditorWrapperProps {
+    onEditorStateChange: (editorState: EditorState) => void
+}
+
 export interface EditorWrapperState {
     editorState: EditorState
 }
 
-export class EditorWrapper extends React.Component<{}, EditorWrapperState> {
+export class EditorWrapper extends React.Component<EditorWrapperProps, EditorWrapperState> {
     private editorRef = createRef<Editor>()
 
 
@@ -25,7 +29,10 @@ export class EditorWrapper extends React.Component<{}, EditorWrapperState> {
                 <Editor 
                     ref={this.editorRef} 
                     editorState={this.state.editorState} 
-                    onChange={editorState => this.setState({editorState})}
+                    onChange={editorState => {
+                        this.props.onEditorStateChange(editorState)
+                        this.setState({editorState})
+                    }}
                  />
             </div>
         )
