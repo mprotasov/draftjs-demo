@@ -1,5 +1,5 @@
 import React, { createRef } from 'react'
-import {Editor, EditorState} from 'draft-js'
+import {Editor, EditorState, RichUtils} from 'draft-js'
 
 const styles = require('./editor-wrapper.module.scss')
 
@@ -22,18 +22,27 @@ export class EditorWrapper extends React.Component<EditorWrapperProps, EditorWra
     focusEditor = () => {        
         this.editorRef?.current?.focus()        
     }
+
+    handleBoldClick = () => {
+        this.setState({
+            editorState: RichUtils.toggleInlineStyle(this.state.editorState, 'BOLD')
+        })
+    }
    
     render() {
         return (
-            <div className={styles.editor} onClick={this.focusEditor}>
-                <Editor 
-                    ref={this.editorRef} 
-                    editorState={this.state.editorState} 
-                    onChange={editorState => {
-                        this.props.onEditorStateChange(editorState)
-                        this.setState({editorState})
-                    }}
-                 />
+            <div>
+                <button onClick={this.handleBoldClick}>Bold</button>
+                <div className={styles.editor} onClick={this.focusEditor}>
+                    <Editor 
+                        ref={this.editorRef} 
+                        editorState={this.state.editorState} 
+                        onChange={editorState => {
+                            this.props.onEditorStateChange(editorState)
+                            this.setState({editorState})
+                        }}
+                    />
+                </div>
             </div>
         )
     }
