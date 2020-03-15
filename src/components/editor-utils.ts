@@ -1,4 +1,4 @@
-import { EditorState, ContentState, ContentBlock, SelectionState, DraftBlockType } from "draft-js";
+import { ContentState, ContentBlock, SelectionState } from "draft-js";
 const modifyBlockForContentState = require('draft-js/lib/modifyBlockForContentState')
 
 export type AlignBlockType = 'left' | 'center' | 'right'
@@ -63,4 +63,33 @@ export const getSelectedBlocks = (contentState: ContentState, anchorKey: string,
         return block.merge({type: newType, depth: 0})
     }
     )
+  }
+
+  const REPLACEMENT_REGEXP = /(%repl){1}[\s\S]+(repl%){1}/g
+  export const replacementStrategy = (contentBlock: ContentBlock, callback: (start: number, end: number) => void, contentState: ContentState) => {
+      findWithRegex(REPLACEMENT_REGEXP, contentBlock, callback)
+  }
+
+  function findWithRegex(regex: RegExp, contentBlock: ContentBlock, callback: (start: number, end: number) => void) {
+    const text = contentBlock.getText();
+    let matchArr, start;
+    while ((matchArr = regex.exec(text)) !== null) {
+      start = matchArr.index;
+      callback(start, start + matchArr[0].length);
+    }
+  }
+
+  export const REPLACEMENT = 'REPLACEMENT'
+
+  export const getReplacementEntityStrategy = (contentBlock: ContentBlock, callback: any, contentState: ContentState) => {
+    contentBlock.findEntityRanges(
+        (character) => {
+          const entityKey = character.getEntity();
+          if (entityKey === null) {
+            return false;
+          }
+          return contentState.getEntity(entityKey).getType() === REPLACEMENT;
+        },
+        callback
+      )
   }

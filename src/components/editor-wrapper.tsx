@@ -1,7 +1,7 @@
 import React, { createRef } from 'react'
-import {Editor, EditorState, RichUtils, ContentBlock, Modifier} from 'draft-js'
-import { setAlignBlockType, AlignBlockType, setFontBlockType, FontBlockType } from './editor-utils'
-const modifyBlockForContentState = require('draft-js/lib/modifyBlockForContentState')
+import {Editor, EditorState, RichUtils, ContentBlock, Modifier, CompositeDecorator} from 'draft-js'
+import { setAlignBlockType, AlignBlockType, setFontBlockType, FontBlockType, getReplacementEntityStrategy, REPLACEMENT } from './editor-utils'
+import { ReplacementRenderer } from './replacement-renderer'
 
 const styles = require('./editor-wrapper.module.scss')
 
@@ -16,8 +16,13 @@ export interface EditorWrapperState {
 export class EditorWrapper extends React.Component<EditorWrapperProps, EditorWrapperState> {
     private editorRef = createRef<Editor>()
 
+    compositeDecorator = new CompositeDecorator([{
+        strategy: getReplacementEntityStrategy,
+        component: ReplacementRenderer
+    }])
+
     state = {
-        editorState: EditorState.createEmpty()
+        editorState: EditorState.createEmpty(this.compositeDecorator)
     }
 
     focusEditor = () => {        
@@ -55,6 +60,23 @@ export class EditorWrapper extends React.Component<EditorWrapperProps, EditorWra
           },
           () => this.focusEditor())
     }
+
+    addReplacement = () => {
+        const editorState = this.state.editorState
+        const contentState = editorState.getCurrentContent()
+        const contentStateWithEntity = contentState.createEntity(REPLACEMENT, 'IMMUTABLE', {
+            settings: {data: 'data'}
+        })
+        const entityKey = contentStateWithEntity.getLastCreatedEntityKey()
+
+        const firstBlank = Modifier.insertText(contentState, editorState.getSelection(), ' ',   undefined, undefined) // we should add space before our repl...
+        const textWithEntity = Modifier.insertText(firstBlank, editorState.getSelection(), 'Custom replacement', undefined, entityKey)
+        const secondBlank = Modifier.insertText(textWithEntity, editorState.getSelection(), ' ', undefined, undefined) // ..and after
+
+        this.setState({
+            editorState: EditorState.push(editorState, secondBlank, 'insert-characters')
+        }, () => this.focusEditor())
+    }
    
     render() {
         return (
@@ -63,6 +85,7 @@ export class EditorWrapper extends React.Component<EditorWrapperProps, EditorWra
                 <button onClick={() => this.handleAlignChange('left')}>Left</button>
                 <button onClick={() => this.handleAlignChange('center')}>Center</button>
                 <button onClick={() => this.handleAlignChange('right')}>Right</button>
+                <button onClick={() => this.addReplacement()}>add repl</button>
 
                 <div className={styles.editor} onClick={this.focusEditor}>
                     <Editor 
