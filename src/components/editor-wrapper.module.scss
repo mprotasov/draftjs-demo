@@ -6,14 +6,29 @@
     height: 400px;
 }
 
-.center {
+.normal-center {
     text-align: center;
 }
 
-.right {
+.normal-right {
     text-align: right
 }
 
-.left {
+.normal-left {
     text-align: left;
+}
+
+.bold-center {
+    text-align: center;
+    font-weight: bold;
+}
+
+.bold-right {
+    text-align: right;
+    font-weight: bold;
+}
+
+.bold-left {
+    text-align: left;
+    font-weight: bold;
 }

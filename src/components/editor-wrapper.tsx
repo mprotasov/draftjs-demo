@@ -1,5 +1,7 @@
 import React, { createRef } from 'react'
 import {Editor, EditorState, RichUtils, ContentBlock, Modifier} from 'draft-js'
+import { setAlignBlockType, AlignBlockType, setFontBlockType, FontBlockType } from './editor-utils'
+const modifyBlockForContentState = require('draft-js/lib/modifyBlockForContentState')
 
 const styles = require('./editor-wrapper.module.scss')
 
@@ -13,7 +15,6 @@ export interface EditorWrapperState {
 
 export class EditorWrapper extends React.Component<EditorWrapperProps, EditorWrapperState> {
     private editorRef = createRef<Editor>()
-    private stylesMap = new Map<string, string>([['left', styles.left], ['right', styles.right], ['center', styles.center]])
 
     state = {
         editorState: EditorState.createEmpty()
@@ -33,22 +34,32 @@ export class EditorWrapper extends React.Component<EditorWrapperProps, EditorWra
 
      blockStyleFn = (contentBlock: ContentBlock): string => {
          const type = contentBlock.getType();
-         const style = this.stylesMap.get(type)
+         const style = styles[type]
          return style || ''
        }
 
-      handleAlignChange = (align: string) => {
-          const contentState = Modifier.setBlockType(this.state.editorState.getCurrentContent(), this.state.editorState.getSelection(), align)
-
-          this.setState({
-            editorState: EditorState.push(this.state.editorState, contentState, 'change-block-type')
-        })
+      handleAlignChange = (align: AlignBlockType) => {
+          const contentState = setAlignBlockType(this.state.editorState.getCurrentContent(), this.state.editorState.getSelection(), align)
+          this.setState(
+            {
+              editorState: EditorState.push(this.state.editorState, contentState, 'change-block-type')
+            },
+            () => this.focusEditor())
       }
+
+      handleBoldChange = (fontStyle: FontBlockType) => {
+        const contentState = setFontBlockType(this.state.editorState.getCurrentContent(), this.state.editorState.getSelection(), fontStyle)
+        this.setState(
+          {
+            editorState: EditorState.push(this.state.editorState, contentState, 'change-block-type')
+          },
+          () => this.focusEditor())
+    }
    
     render() {
         return (
             <div>
-                <button onClick={this.handleBoldClick}>Bold</button>
+                <button onClick={() => this.handleBoldChange('bold')}>Bold</button>
                 <button onClick={() => this.handleAlignChange('left')}>Left</button>
                 <button onClick={() => this.handleAlignChange('center')}>Center</button>
                 <button onClick={() => this.handleAlignChange('right')}>Right</button>
