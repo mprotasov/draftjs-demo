@@ -1,6 +1,5 @@
 import React from 'react'
 import { EditorState } from 'draft-js'
-import ReactJson from 'react-json-view'
 
 export interface EditorStateViewerProps {
     editorState: EditorState
