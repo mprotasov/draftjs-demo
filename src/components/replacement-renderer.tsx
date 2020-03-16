@@ -1,5 +1,7 @@
 import React, { FunctionComponent } from 'react'
 
+const styles = require('./replacement-renderer.module.scss')
+
 export const ReplacementRenderer: FunctionComponent = (props: any) => {
     // we can access props.entityKey here for managing settings
 
@@ -11,14 +13,7 @@ export const ReplacementRenderer: FunctionComponent = (props: any) => {
     return (
         <div 
             id='container'
-            style={{
-                background: 'green', 
-                display: 'inline', 
-                cursor: 'pointer', 
-                userSelect: 'none',
-                marginLeft: '4px',
-                marginRight: '4px'
-            }} 
+            className={styles.replacementRenderer}
             draggable="true"
             onDragStart={startDrag}
             suppressContentEditableWarning={true}
