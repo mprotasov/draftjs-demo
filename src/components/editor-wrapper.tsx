@@ -1,9 +1,11 @@
 import React, { createRef } from 'react'
-import Editor from 'draft-js-plugins-editor'
+import Editor, { composeDecorators } from 'draft-js-plugins-editor'
 import { EditorState, ContentBlock, SelectionState, DraftDragType, DraftHandleValue } from 'draft-js'
 import { setAlignBlockType, AlignBlockType, setFontBlockType, FontBlockType, getReplacementEntityStrategy, REPLACEMENT, removeEntityRange, getReplacementWithSpaces } from './editor-utils'
 import { ReplacementRenderer } from './replacement-renderer'
 import createBlockDndPlugin from 'draft-js-drag-n-drop-plugin'
+import createImagePlugin from 'draft-js-image-plugin'
+import { testImg } from './test-image-base64'
 
 const styles = require('./editor-wrapper.module.scss')
 
@@ -16,6 +18,9 @@ export interface EditorWrapperState {
 }
 
 const blockDndPlugin = createBlockDndPlugin()
+
+const decorator = composeDecorators(blockDndPlugin.decorator)
+const imagePlugin = createImagePlugin({ decorator })
 
 const decorators = [
     {
@@ -38,7 +43,7 @@ export class EditorWrapper extends React.Component<EditorWrapperProps, EditorWra
     blockStyleFn = (contentBlock: ContentBlock): string => {
         const type = contentBlock.getType();
         const style = styles[type]
-        return style || ''
+        return style || styles['normal-center']
     }
 
     handleAlignChange = (align: AlignBlockType) => {
@@ -93,6 +98,14 @@ export class EditorWrapper extends React.Component<EditorWrapperProps, EditorWra
         return 'not-handled'  
     }
 
+    addImage = () => {
+        this.setState(
+            {
+                editorState:imagePlugin.addImage(this.state.editorState, testImg)
+            }, 
+            () => this.focusEditor())
+    }
+
     render() {
         return (
             <div>
@@ -101,11 +114,12 @@ export class EditorWrapper extends React.Component<EditorWrapperProps, EditorWra
                 <button onClick={() => this.handleAlignChange('center')}>Center</button>
                 <button onClick={() => this.handleAlignChange('right')}>Right</button>
                 <button onClick={() => this.addReplacement()}>add repl</button>
+                <button onClick={() => this.addImage()}>add image</button>
 
                 <div className={styles.editor} onClick={this.focusEditor}>
                     <Editor
                         decorators={decorators}
-                        plugins={[blockDndPlugin]}
+                        plugins={[blockDndPlugin, imagePlugin]}
                         ref={this.editorRef}
                         editorState={this.state.editorState}
                         blockStyleFn={this.blockStyleFn}
