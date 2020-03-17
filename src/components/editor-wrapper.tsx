@@ -42,8 +42,14 @@ export class EditorWrapper extends React.Component<EditorWrapperProps, EditorWra
 
     blockStyleFn = (contentBlock: ContentBlock): string => {
         const type = contentBlock.getType();
-        const style = styles[type]
-        return style || styles['normal-center']
+        let style = styles[type]
+        
+        // temporary solution for images
+        if (contentBlock.getType() === 'atomic') {
+            style = styles['normal-center']
+        }
+
+        return style || ''
     }
 
     handleAlignChange = (align: AlignBlockType) => {
